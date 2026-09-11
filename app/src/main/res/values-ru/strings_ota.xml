@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ota_channel_name">Обновления и новости</string>
+    <string name="ota_update_available_title">Доступно обновление</string>
+    <string name="ota_update_available_body">Версия %1$s доступна. Нажмите для обновления.</string>
+    <string name="ota_dialog_title">Доступно обновление</string>
+    <string name="ota_dialog_body">Stryker %1$s доступен.</string>
+    <string name="ota_dialog_update">Обновить</string>
+    <string name="ota_dialog_later">Позже</string>
+    <string name="ota_dialog_skip">Пропустить эту версию</string>
+    <string name="ota_downloading">Загрузка обновления…</string>
+    <string name="ota_download_failed">Ошибка загрузки обновления</string>
+    <string name="ota_enable_unknown_sources">Разрешите установку приложений от Stryker для продолжения обновления</string>
+</resources>

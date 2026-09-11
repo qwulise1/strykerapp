@@ -2,9 +2,10 @@ name: Android CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, russian-translation, feat/russian-translation ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,4 +31,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-russian-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+

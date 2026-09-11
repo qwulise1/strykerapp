@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="news_read_more">Читать далее</string>
+    <string name="news_no_app">Ни одно установленное приложение не может открыть эту ссылку.</string>
+</resources>

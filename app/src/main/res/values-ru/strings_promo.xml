@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="promo_github_title">Нравится Stryker?</string>
+    <string name="promo_github_message">Stryker бесплатен и открыт. Если он вам полезен, звезда на GitHub поможет проекту расти и доходить до новых людей.</string>
+    <string name="promo_github_action">Звезда на GitHub</string>
+    <string name="promo_blog_title">Будьте в курсе</string>
+    <string name="promo_blog_message">Новые инструменты, обзоры и заметки о релизах публикуются в блоге первыми. Посмотрите, что будет дальше.</string>
+    <string name="promo_blog_action">Перейти в блог</string>
+    <string name="promo_later">Может, позже</string>
+</resources>
