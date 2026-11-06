@@ -1,21 +1,18 @@
 package com.zalexdev.stryker.engine;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.zalexdev.stryker.utils.Core;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.stryker.terminal.bridge.StrykerLog;
 
 public final class GuestCore {
 
-    public static final String ASSET = "rootless/stryker-guest-core.tar";
+    public static final String ASSET = GuestCorePackage.ASSET;
     public static final String MARKER = "/CORE/PixieWps/pixie.py";
     public static final String VERSION_FILE = "/CORE/.version";
-    public static final String VERSION = "6";
+    public static final String VERSION = "7";
 
     private static final String TAG = "GuestCore";
     private static final String STAGED_NAME = "stryker-core.tar";
@@ -55,14 +52,11 @@ public final class GuestCore {
         Context ctx = core.context;
         if (ctx == null) return false;
         File staged = new File(ctx.getFilesDir(), STAGED_NAME);
-        try (InputStream in = ctx.getAssets().open(ASSET);
-             OutputStream out = new FileOutputStream(staged)) {
-            byte[] buf = new byte[1 << 16];
-            int r;
-            while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
-            out.flush();
+        try {
+            GuestCorePackage.extractTo(ctx, staged);
         } catch (Exception e) {
-            Log.w(TAG, "staging failed: " + e.getMessage());
+            StrykerLog.w(TAG, "staging failed: " + e.getMessage());
+            staged.delete();
             return false;
         }
         core.customCommand("mkdir -p " + Core.CHROOT_ROOT);
@@ -70,7 +64,6 @@ public final class GuestCore {
                 + " -C " + Core.CHROOT_ROOT);
         core.customCommand("chmod -R 0755 " + Core.CHROOT_ROOT + "/CORE "
                 + Core.CHROOT_ROOT + "/exploits");
-        //noinspection ResultOfMethodCallIgnored
         staged.delete();
         return core.checkFile(Core.CHROOT_ROOT + MARKER);
     }

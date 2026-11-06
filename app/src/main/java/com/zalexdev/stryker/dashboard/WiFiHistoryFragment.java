@@ -24,6 +24,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.zalexdev.stryker.R;
+import com.zalexdev.stryker.logger.LogTool;
 import com.zalexdev.stryker.utils.Core;
 
 import java.io.File;
@@ -64,25 +65,31 @@ public class WiFiHistoryFragment extends Fragment {
             for (ArrayList<String> network : networks) {
                 builder.append(network.get(2)).append(",").append(network.get(0)).append(",").append(network.get(1)).append(",").append(network.get(3)).append("\n");
             }
+            File shareDir = new File(core.getShareRoot());
+            shareDir.mkdirs();
+            final File file = new File(shareDir, "saved_networks.csv");
             try {
-                @SuppressLint("SdCardPath") File file = new File("/sdcard/Stryker/saved_networks.csv");
                 FileWriter writer = new FileWriter(file);
                 writer.append(builder.toString());
                 writer.flush();
                 writer.close();
-                core.toaster("Saved networks exported to /sdcard/Stryker/saved_networks.csv");
+                core.toaster("Saved networks exported to " + file.getAbsolutePath());
             } catch (Exception e) {
                 e.printStackTrace();
-                if (e.getMessage().contains("EPERM")) {
+                String msg = e.getMessage() == null ? "" : e.getMessage();
+                if (msg.contains("EPERM") || msg.contains("EACCES") || msg.contains("Permission denied")) {
                     new MaterialAlertDialogBuilder(context)
                             .setTitle("Permission denied")
                             .setMessage("Failed to write file, use write as root?")
                             .setPositiveButton(android.R.string.yes, (di, i) -> {
+                                String target = file.getAbsolutePath();
+                                core.customCommand("mkdir -p '" + shareDir.getAbsolutePath() + "'", true);
+                                core.customCommand(": > '" + target + "'", true);
                                 String[] lines = builder.toString().split("\n");
                                 for (String line : lines) {
-                                    core.customCommand("echo '" + line.replace("'", "\\'") + "' > /sdcard/Stryker/saved_networks.csv", true);
+                                    core.customCommand("echo '" + line.replace("'", "'\\''") + "' >> '" + target + "'", true);
                                 }
-                                core.toaster("Saved networks exported to /sdcard/Stryker/saved_networks.csv");
+                                core.toaster("Saved networks exported to " + target);
                             })
                             .setNegativeButton(android.R.string.no, (di, i) -> {
                             })
@@ -126,11 +133,15 @@ public class WiFiHistoryFragment extends Fragment {
                 try {
                     valueLayout.setError(null);
                     ArrayList<String> networks = core.customCommand("cat " + path);
-                    networks.remove(0);
-                    for (String network : networks) {
-                        String[] split = network.split(",");
-                        core.saveNetwork(split[3], split[1], split[2], split[0]);
-                        core.connectWiFi2(split[0], split[1]);
+                    for (int i = 1; i < networks.size(); i++) {
+                        String[] split = networks.get(i).split(",", -1);
+                        if (split.length < 4 || split[3].trim().isEmpty()) continue;
+                        try {
+                            core.saveNetwork(split[3].trim(), split[1], split[2], split[0]);
+                            core.connectWiFi2(split[0], split[1]);
+                        } catch (RuntimeException e) {
+                            core.logger.writeLine("Saved network import skipped " + split[3].trim() + ": " + e, 3, LogTool.CORE);
+                        }
                     }
                     mRecyclerView.setAdapter(new StoredAdapter(context, activity, core.getSavedNetworks()));
                     core.toaster("Imported networks");

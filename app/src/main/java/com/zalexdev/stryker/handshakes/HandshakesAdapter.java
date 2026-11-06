@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,50 +27,127 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.zalexdev.stryker.R;
-import com.zalexdev.stryker.custom.WiFINetwork;
 import com.zalexdev.stryker.handshakes.utils.BruteHandshake;
+import com.zalexdev.stryker.handshakes.utils.BruteJobs;
 import com.zalexdev.stryker.utils.Core;
+import com.zalexdev.stryker.utils.GuestFiles;
+import com.zalexdev.stryker.wordlists.WordlistCategory;
+import com.zalexdev.stryker.wordlists.WordlistPickerDialog;
+import com.zalexdev.stryker.wordlists.WordlistStore;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.stryker.terminal.bridge.StrykerLog;
 
 public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.ViewHolder> {
 
     private static final Pattern MAC_PATTERN = Pattern.compile("((\\w{2}:){5}\\w{2})");
+
+    private static final String PREF_LAST_WORDLIST = "handshake_last_wordlist";
 
     public ArrayList<String> hslist;
     public Context context;
     public Activity activity;
     public Core core;
     public Runnable onChangeListener;
-    public int id = 0;
 
     public HandshakesAdapter(Context context, Activity activity, ArrayList<String> hsList) {
         this.context = context;
         this.hslist = hsList;
         this.activity = activity;
         this.core = new Core(context);
+        rebuildRows();
+        scanCaptures();
     }
 
     public void setOnChangeListener(Runnable listener) {
         this.onChangeListener = listener;
     }
 
+    private static final class Row {
+        final String header;
+        final String path;
+        final int index;
+
+        Row(String header, String path, int index) {
+            this.header = header;
+            this.path = path;
+            this.index = index;
+        }
+    }
+
+    private static final int TYPE_HEADER = 1;
+    private static final int TYPE_CAPTURE = 0;
+
+    private final ArrayList<Row> rows = new ArrayList<>();
+
+    private void rebuildRows() {
+        final java.util.HashMap<String, Long> when = new java.util.HashMap<>();
+        for (String p : hslist) when.put(p, captureFile(p).lastModified());
+
+        java.util.Collections.sort(hslist, (a, b) -> {
+            long ta = when.containsKey(a) ? when.get(a) : 0L;
+            long tb = when.containsKey(b) ? when.get(b) : 0L;
+            return Long.compare(tb, ta);
+        });
+
+        rows.clear();
+        String current = null;
+        for (int i = 0; i < hslist.size(); i++) {
+            String path = hslist.get(i);
+            String day = dayLabel(when.containsKey(path) ? when.get(path) : 0L);
+            if (!day.equals(current)) {
+                current = day;
+                rows.add(new Row(day, null, -1));
+            }
+            rows.add(new Row(null, path, i));
+        }
+    }
+
+    private String dayLabel(long millis) {
+        if (millis <= 0L) return context.getString(R.string.hs_group_unknown);
+        java.util.Calendar then = java.util.Calendar.getInstance();
+        then.setTimeInMillis(millis);
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        if (sameDay(then, now)) return context.getString(R.string.hs_group_today);
+        now.add(java.util.Calendar.DAY_OF_YEAR, -1);
+        if (sameDay(then, now)) return context.getString(R.string.hs_group_yesterday);
+        return android.text.format.DateFormat.getMediumDateFormat(context)
+                .format(new java.util.Date(millis));
+    }
+
+    private static boolean sameDay(java.util.Calendar a, java.util.Calendar b) {
+        return a.get(java.util.Calendar.YEAR) == b.get(java.util.Calendar.YEAR)
+                && a.get(java.util.Calendar.DAY_OF_YEAR) == b.get(java.util.Calendar.DAY_OF_YEAR);
+    }
+
+    private void refreshRows() {
+        rebuildRows();
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(context).inflate(R.layout.handshake_item, parent, false);
-        return new ViewHolder(v);
+        int layout = viewType == TYPE_HEADER
+                ? R.layout.handshake_date_header
+                : R.layout.handshake_item;
+        return new ViewHolder(LayoutInflater.from(context).inflate(layout, parent, false));
     }
 
     @SuppressLint({"SetTextI18n", "RecyclerView"})
     @Override
     public void onBindViewHolder(@NonNull ViewHolder h, int position) {
-        String path = hslist.get(position);
+        Row row = rows.get(position);
+        if (row.header != null) {
+            h.dateHeader.setText(row.header);
+            return;
+        }
+        String path = row.path;
+        final int index = row.index;
         String displayName = new File(path).getName();
 
         h.brute.setVisibility(View.VISIBLE);
@@ -82,15 +158,19 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
         h.timeLeft.setText("");
         h.itemView.setOnClickListener(null);
 
-        String mac = path;
-        Matcher m = MAC_PATTERN.matcher(path);
-        if (m.find()) mac = m.group(0);
+        CaptureInfo info = CaptureInfo.of(captureFile(path));
+        String mac = info.bssid;
+        if (mac.isEmpty()) {
+            Matcher m = MAC_PATTERN.matcher(path);
+            mac = m.find() ? m.group(0) : "";
+        }
         final String finalMac = mac;
 
         String stored = core.getString(mac);
         boolean cracked = stored != null && stored.length() > 0;
 
-        h.name.setText(displayName);
+        h.name.setText(info.ssid.isEmpty() ? displayName : info.ssid);
+        paintKind(h, info);
 
         if (cracked) {
             h.stateChip.setVisibility(View.VISIBLE);
@@ -102,13 +182,79 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
         } else {
             h.progress.setTextColor(Color.parseColor("#9E9E9E"));
             File f = captureFile(path);
-            if (f.exists()) {
-                h.progress.setText(humanSize(f.length()));
+            StringBuilder line = new StringBuilder();
+            if (f.exists()) line.append(humanSize(f.length()));
+            if (!finalMac.isEmpty()) {
+                if (line.length() > 0) line.append("  ·  ");
+                line.append(core.getBoolean("hide") ? Core.HIDDEN_MAC : finalMac);
             }
+            if (info.kind == CaptureInfo.Kind.HANDSHAKE && info.pmkid) {
+                line.append("  ·  ").append(context.getString(R.string.hs_kind_pmkid));
+            }
+            h.progress.setText(line.toString());
         }
 
         h.brute.setOnClickListener(v -> startBrute(h, path, finalMac));
-        h.overflow.setOnClickListener(v -> showOverflow(v, position, path, displayName, finalMac));
+        h.overflow.setOnClickListener(v -> showOverflow(v, index, path, displayName, finalMac));
+
+        String key = keyOf(path);
+        String startProblem = failedStarts.get(key);
+        if (startProblem != null) {
+            h.progress.setVisibility(View.VISIBLE);
+            h.progress.setText(startProblem);
+            h.progress.setTextColor(Color.parseColor("#E53935"));
+            h.timeLeft.setVisibility(View.GONE);
+            h.stateChip.setVisibility(View.GONE);
+            h.cancel.setVisibility(View.GONE);
+            h.brute.setVisibility(View.VISIBLE);
+            return;
+        }
+        BruteHandshake job = BruteJobs.find(key);
+        if (job == null) return;
+        if (job.isRunning()) bindJob(h, job, key);
+        else if (!cracked) bindOutcome(h, job);
+    }
+
+    private void scanCaptures() {
+        final java.util.ArrayList<String> snapshot = new java.util.ArrayList<>(hslist);
+        new Thread(() -> {
+            for (String p : snapshot) {
+                if (p == null) continue;
+                CaptureInfo.of(captureFile(p));
+            }
+            if (activity != null) activity.runOnUiThread(this::refreshRows);
+        }, "hs-scan").start();
+    }
+
+    private void paintKind(ViewHolder h, CaptureInfo info) {
+        switch (info.kind) {
+            case HANDSHAKE:
+                h.icon.setImageResource(R.drawable.handshake_interface);
+                h.icon.setColorFilter(Color.parseColor("#2E7D32"));
+                h.stateChip.setVisibility(View.VISIBLE);
+                h.stateChip.setText(R.string.hs_kind_handshake);
+                h.stateChip.setTextColor(Color.parseColor("#2E7D32"));
+                break;
+            case PMKID:
+                h.icon.setImageResource(R.drawable.key);
+                h.icon.setColorFilter(Color.parseColor("#0277BD"));
+                h.stateChip.setVisibility(View.VISIBLE);
+                h.stateChip.setText(R.string.hs_kind_pmkid);
+                h.stateChip.setTextColor(Color.parseColor("#0277BD"));
+                break;
+            case EMPTY:
+                h.icon.setImageResource(R.drawable.close);
+                h.icon.setColorFilter(Color.parseColor("#C62828"));
+                h.stateChip.setVisibility(View.VISIBLE);
+                h.stateChip.setText(R.string.hs_kind_empty);
+                h.stateChip.setTextColor(Color.parseColor("#C62828"));
+                break;
+            default:
+                h.icon.setImageResource(R.drawable.file);
+                h.icon.setColorFilter(Color.parseColor("#FB8C00"));
+                h.stateChip.setVisibility(View.GONE);
+                break;
+        }
     }
 
     private void showOverflow(View anchor, int position, String path, String displayName, String mac) {
@@ -118,7 +264,7 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
         if (cracked) {
             menu.getMenu().add(0, 5, 0, R.string.hs_password_copy);
         }
-        menu.getMenu().add(0, 1, 1, R.string.hs_action_upload);
+        menu.getMenu().add(0, 1, 2, R.string.hs_action_upload);
         menu.getMenu().add(0, 2, 2, R.string.hs_action_share);
         menu.getMenu().add(0, 3, 3, R.string.hs_action_rename);
         menu.getMenu().add(0, 4, 4, R.string.hs_action_delete);
@@ -145,23 +291,18 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
     }
 
     private void startBrute(ViewHolder h, String path, String finalMac) {
-        ArrayList<String> get = core.getListFiles(core.getShareRoot() + "/wordlists");
-        if (get.isEmpty()) {
-            toaster(context.getString(R.string.hs_wordlist_empty));
-            return;
-        }
-        String[] names = new String[get.size()];
-        for (int i = 0; i < get.size(); i++) {
-            names[i] = get.get(i).replace(core.getShareRoot() + "/wordlists/", "");
-        }
-        new MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.hs_wordlist_title)
-                .setItems(names, (di, idx) -> launchBrute(h, path, finalMac, get.get(idx)))
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+        WordlistPickerDialog.show(context, activity, core,
+                context.getString(R.string.hs_wordlist_title),
+                new WordlistCategory[] { WordlistCategory.WIFI, WordlistCategory.PASSWORD },
+                core.getString(PREF_LAST_WORDLIST),
+                wordlist -> {
+                    core.putString(PREF_LAST_WORDLIST, wordlist.getName());
+                    launchBrute(h, path, finalMac, wordlist);
+                });
     }
 
-    private void launchBrute(ViewHolder h, String path, String finalMac, String wordlistPath) {
+    private void launchBrute(ViewHolder h, String path, String finalMac,
+                             com.zalexdev.stryker.wordlists.Wordlist wordlist) {
         h.progress.setVisibility(View.VISIBLE);
         h.progress.setTextColor(Color.parseColor("#9E9E9E"));
         h.timeLeft.setVisibility(View.VISIBLE);
@@ -172,42 +313,153 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
         h.cancel.setVisibility(View.VISIBLE);
         h.progress.setText(R.string.hs_progress_starting);
 
+        final String key = keyOf(path);
+        failedStarts.remove(key);
         new Thread(() -> {
-            try {
-                id++;
-                String capRel = path.replace(core.getShareRoot(), "/sdcard/Stryker");
-                String wlRel = wordlistPath.replace(core.getShareRoot(), "/sdcard/Stryker");
-                BruteHandshake br = new BruteHandshake(capRel, wlRel, core, activity, context, h.progress, h.timeLeft, id);
-                activity.runOnUiThread(() -> h.cancel.setOnClickListener(v -> {
-                    br.kill();
-                    h.cancel.setVisibility(View.GONE);
-                    h.brute.setVisibility(View.VISIBLE);
-                    h.stateChip.setVisibility(View.GONE);
-                    h.timeLeft.setVisibility(View.GONE);
-                }));
-                WiFINetwork w = br.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR).get();
-                activity.runOnUiThread(() -> {
-                    h.brute.setVisibility(View.VISIBLE);
-                    h.cancel.setVisibility(View.GONE);
-                    h.timeLeft.setVisibility(View.GONE);
-                    if (w.getOK()) {
-                        h.progress.setText(context.getResources().getString(R.string.pass_founded) + w.getPsk());
-                        h.progress.setTextColor(Color.parseColor("#388E3C"));
-                        h.stateChip.setText(R.string.hs_state_cracked);
-                        h.stateChip.setTextColor(Color.parseColor("#388E3C"));
-                        core.putString(finalMac, w.getPsk());
-                        if (onChangeListener != null) onChangeListener.run();
-                    } else {
-                        h.progress.setText(R.string.pass_not_found);
-                        h.progress.setTextColor(Color.parseColor("#D32F2F"));
-                        h.stateChip.setVisibility(View.GONE);
-                    }
-                });
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
+            GuestFiles.Resolved list = new WordlistStore(core).reachable(wordlist);
+            if (!list.ok()) {
+                stopWithProblem(key, context.getString(
+                        R.string.hs_wordlist_missing, wordlist.getName()), list.problem);
+                return;
             }
+            File capHost = captureFile(path);
+            GuestFiles.Resolved cap = GuestFiles.resolveShared(
+                    core, "captured", capHost.getName(), capHost);
+            if (!cap.ok()) {
+                stopWithProblem(key, context.getString(
+                        R.string.hs_capture_missing, capHost.getName()), cap.problem);
+                return;
+            }
+            BruteHandshake job = new BruteHandshake(core, context, key, capHost.getName(),
+                    cap.path, list.path, wordlist.getName(), finalMac, nextNotificationId());
+            if (!BruteJobs.start(job)) {
+                toastOnUi(context.getString(R.string.hs_brute_already, capHost.getName()));
+            }
+            refreshRow(key);
         }).start();
     }
+
+    private static int notificationSeq = 4100;
+
+    private static synchronized int nextNotificationId() {
+        return ++notificationSeq;
+    }
+
+    private String keyOf(String path) {
+        return captureFile(path).getName();
+    }
+
+    private void refreshRow(String key) {
+        if (activity == null || key == null) return;
+        activity.runOnUiThread(() -> {
+            for (int i = 0; i < rows.size(); i++) {
+                Row row = rows.get(i);
+                if (row.path != null && key.equals(keyOf(row.path))) {
+                    notifyItemChanged(i);
+                    return;
+                }
+            }
+        });
+    }
+
+    private String lastProblemShown;
+
+    private final BruteJobs.Listener jobListener = job -> {
+        refreshRow(job.key);
+        if (job.state() == BruteHandshake.State.FOUND && onChangeListener != null) {
+            onChangeListener.run();
+        }
+        if (job.state() == BruteHandshake.State.FAILED && job.problem() != null
+                && !job.problem().equals(lastProblemShown)) {
+            lastProblemShown = job.problem();
+            core.toaster(job.problem());
+        }
+    };
+
+    public void attach() {
+        BruteJobs.addListener(jobListener);
+    }
+
+    public void detach() {
+        BruteJobs.removeListener(jobListener);
+    }
+
+    private void bindJob(ViewHolder h, BruteHandshake job, String key) {
+        h.brute.setVisibility(View.GONE);
+        h.cancel.setVisibility(View.VISIBLE);
+        h.stateChip.setVisibility(View.VISIBLE);
+        h.stateChip.setText(R.string.hs_state_brute);
+        h.stateChip.setTextColor(Color.parseColor("#AB47BC"));
+        h.progress.setVisibility(View.VISIBLE);
+        h.progress.setTextColor(Color.parseColor("#9E9E9E"));
+        String line = job.progressText();
+        h.progress.setText(line.isEmpty()
+                ? context.getString(R.string.hs_progress_starting) : line);
+        String remaining = job.timeText();
+        h.timeLeft.setVisibility(remaining.isEmpty() ? View.GONE : View.VISIBLE);
+        h.timeLeft.setText(remaining);
+        h.cancel.setOnClickListener(v -> {
+            BruteJobs.cancel(key);
+            refreshRow(key);
+        });
+    }
+
+    private boolean bindOutcome(ViewHolder h, BruteHandshake job) {
+        h.cancel.setVisibility(View.GONE);
+        h.brute.setVisibility(View.VISIBLE);
+        h.timeLeft.setVisibility(View.GONE);
+        switch (job.state()) {
+            case FOUND:
+                h.progress.setVisibility(View.VISIBLE);
+                h.progress.setText(context.getString(R.string.pass_founded) + job.psk());
+                h.progress.setTextColor(Color.parseColor("#388E3C"));
+                h.stateChip.setVisibility(View.VISIBLE);
+                h.stateChip.setText(R.string.hs_state_cracked);
+                h.stateChip.setTextColor(Color.parseColor("#388E3C"));
+                return true;
+            case FAILED:
+                h.progress.setVisibility(View.VISIBLE);
+                h.progress.setText(context.getString(R.string.hs_brute_failed, job.problem()));
+                h.progress.setTextColor(Color.parseColor("#D32F2F"));
+                h.stateChip.setVisibility(View.GONE);
+                return true;
+            case MISSED:
+                h.progress.setVisibility(View.VISIBLE);
+                h.progress.setText(R.string.pass_not_found);
+                h.progress.setTextColor(Color.parseColor("#D32F2F"));
+                h.stateChip.setVisibility(View.GONE);
+                return true;
+            case CANCELLED:
+                h.progress.setVisibility(View.VISIBLE);
+                h.progress.setText(R.string.hs_brute_cancelled);
+                h.progress.setTextColor(Color.parseColor("#9E9E9E"));
+                h.stateChip.setVisibility(View.GONE);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void toastOnUi(String message) {
+        if (activity == null || message == null) return;
+        activity.runOnUiThread(() -> core.toaster(message));
+    }
+
+    private void stopWithProblem(String key, String headline, String detail) {
+        if (detail != null && !detail.isEmpty()) {
+            StrykerLog.w("Handshakes", headline + " — " + detail);
+            core.logger.writeLine(headline + " — " + detail, 3);
+        }
+        if (activity == null) return;
+        failedStarts.put(key, headline);
+        toastOnUi(detail == null || detail.isEmpty()
+                ? context.getString(R.string.hs_wordlist_missing_toast)
+                : detail);
+        refreshRow(key);
+    }
+
+    private final java.util.Map<String, String> failedStarts =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     private void askEmailAndUpload(String path, String displayName) {
         final Dialog dialog = new Dialog(context);
@@ -229,7 +481,9 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
             toaster("Uploading " + displayName);
             new Thread(() -> {
                 ArrayList<String> result = core.customChrootCommand(
-                        "curl -s -X POST -F \"email=" + email + "\" -F \"file=@/sdcard/Stryker/captured/" + displayName + "\" https://api.onlinehashcrack.com");
+                        "curl -s -X POST -F \"email=" + email + "\" -F \"file=@"
+                                + core.guestShare() + "/captured/" + displayName
+                                + "\" https://api.onlinehashcrack.com");
                 UploadResult outcome = parseUploadResult(result);
                 activity.runOnUiThread(() -> {
                     switch (outcome.outcome) {
@@ -281,6 +535,23 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
                     boolean already = message.toLowerCase(java.util.Locale.ROOT).contains("already");
                     return new UploadResult(already ? UploadOutcome.ALREADY : UploadOutcome.SUCCESS, message);
                 }
+                org.json.JSONObject accepted = json.optJSONObject("accepted");
+                org.json.JSONObject skipped = json.optJSONObject("skipped");
+                org.json.JSONObject rejected = json.optJSONObject("rejected");
+                if (accepted != null || skipped != null || rejected != null) {
+                    int acc = accepted != null ? accepted.optInt("count", 0) : 0;
+                    int skp = skipped != null ? skipped.optInt("count", 0) : 0;
+                    int rej = rejected != null ? rejected.optInt("count", 0) : 0;
+                    if (acc > 0) {
+                        return new UploadResult(UploadOutcome.SUCCESS, message);
+                    }
+                    if (skp > 0) {
+                        String reason = skipped != null ? skipped.optString("reason", "") : "";
+                        return new UploadResult(UploadOutcome.ALREADY, reason);
+                    }
+                    String reason = rejected != null ? rejected.optString("reason", "") : "";
+                    return new UploadResult(UploadOutcome.FAILED, reason);
+                }
                 return new UploadResult(UploadOutcome.FAILED, message);
             } catch (org.json.JSONException ignored) {
             }
@@ -312,7 +583,7 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
             chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             context.startActivity(chooser);
         } catch (Exception e) {
-            android.util.Log.w("HandshakesAdapter", "share failed", e);
+            StrykerLog.w("HandshakesAdapter", "share failed", e);
             toaster(context.getString(R.string.hs_share_failed));
         }
     }
@@ -344,7 +615,7 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
             File dst = captureFile(newName);
             if (src.renameTo(dst)) {
                 hslist.set(position, newName);
-                notifyItemChanged(position);
+                refreshRows();
                 if (onChangeListener != null) onChangeListener.run();
             }
             dialog.dismiss();
@@ -365,8 +636,7 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
                     }
                     if (deleted) {
                         hslist.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, hslist.size());
+                        refreshRows();
                         if (onChangeListener != null) onChangeListener.run();
                     }
                 })
@@ -376,17 +646,18 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return hslist.size();
+        return rows.size();
     }
 
     @Override
     public long getItemId(int position) {
-        return hslist.get(position).hashCode();
+        Row row = rows.get(position);
+        return row.header != null ? row.header.hashCode() : row.path.hashCode();
     }
 
     @Override
     public int getItemViewType(int position) {
-        return 0;
+        return rows.get(position).header != null ? TYPE_HEADER : TYPE_CAPTURE;
     }
 
     public void toaster(String msg) {
@@ -409,9 +680,11 @@ public class HandshakesAdapter extends RecyclerView.Adapter<HandshakesAdapter.Vi
         public ImageView cancel;
         public ImageView overflow;
         public ImageView icon;
+        public TextView dateHeader;
 
         public ViewHolder(View v) {
             super(v);
+            dateHeader = v.findViewById(R.id.hs_date_header);
             name = v.findViewById(R.id.hs_name);
             progress = v.findViewById(R.id.hs_progress);
             timeLeft = v.findViewById(R.id.hs_time_left);
