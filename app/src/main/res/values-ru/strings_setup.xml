@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_caps_title">Проверка движка</string>
+    <string name="setup_caps_subtitle">Поиск движка, подходящего для этого устройства.</string>
+    <string name="setup_caps_starting">Запуск…</string>
+    <string name="setup_caps_running">Проверка %1$s…</string>
+    <string name="setup_caps_continue">Продолжить</string>
+    <string name="setup_caps_skip">Выбрать вручную</string>
+    <string name="setup_caps_done">Готово</string>
+    <string name="setup_verdict_root">Root-движок</string>
+    <string name="setup_verdict_uml">UML-ARM64</string>
+    <string name="setup_verdict_qemu">Виртуальная машина</string>
+    <string name="setup_verdict_none">Нет поддерживаемого движка</string>
+    <string name="setup_recommended_badge">Рекомендуется</string>
+    <string name="engine_uml_blocked">Недоступно — ядро не запустится на этом устройстве</string>
+    <string name="setup_install_trying">Запуск %1$s…</string>
+    <string name="setup_install_fallback">%1$s не сработал. Пробуем %2$s.</string>
+    <string name="setup_install_fallback_title">Смена движка</string>
+    <string name="setup_install_all_failed_title">Ни один движок не запустился</string>
+    <string name="setup_install_all_failed_body">Stryker необходим движок для выполнения команд. Продолжить всё равно или проверить лог?</string>
+    <string name="setup_install_manual">Продолжить всё равно</string>
+    <string name="setup_install_offline_title">Нет подключения</string>
+    <string name="setup_install_offline_body">Движок загружается с GitHub. Подключитесь к сети и повторите попытку.</string>
+    <string name="setup_update_title">Обновление движка</string>
+    <string name="setup_update_body">В этом релизе используется другая система Linux. Старая будет удалена, а новая установлена; ваши настройки сохранятся.</string>
+    <string name="setup_update_freed">Предыдущий образ удален — освобождено %1$s</string>
+    <string name="setup_gate_title">Движок не запустился</string>
+    <string name="setup_gate_body">Не удалось запустить %1$s. Переключение на %2$s и повторная установка.</string>
+    <string name="setup_gate_action">Переустановить</string>
+    <string name="setup_gate_dead_body">На этом устройстве не запускается ни один движок. Stryker не может работать без него.</string>
+    <string name="setup_gate_retry">Повторить</string>
+    <string name="setup_gate_quit">Закрыть</string>
+</resources>

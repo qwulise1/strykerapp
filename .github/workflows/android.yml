@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ main, russian-translation, feat/russian-translation ]
+    branches: [ main, russian-translation ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
@@ -29,7 +29,8 @@ jobs:
       - name: Install SDK platform, build-tools, NDK and CMake
         run: |
           SDKMANAGER="${ANDROID_SDK_ROOT:-$ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
-          yes | "$SDKMANAGER" "platforms;android-33" "build-tools;34.0.0" "ndk;25.1.8937393" "cmake;3.22.1"
+          yes | "$SDKMANAGER" --licenses || true
+          yes | "$SDKMANAGER" "platforms;android-34" "platforms;android-35" "build-tools;34.0.0" "build-tools;35.0.0" "ndk;25.1.8937393" "cmake;3.22.1" || true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -40,7 +41,7 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: stryker-russian-debug-apk
+          name: stryker-russian-6.5.1-apk
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Upload APK for Direct Download
@@ -56,8 +57,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: app/build/outputs/apk/debug/*.apk
-          name: Stryker 6.0 Russian (${{ github.ref_name }})
+          name: Stryker 6.5.1 Russian (${{ github.ref_name }})
           draft: false
           prerelease: false
-
-

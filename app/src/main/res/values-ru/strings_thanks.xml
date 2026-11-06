@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_thanks_label">Благодарности</string>
+    <string name="about_thanks_desc">Люди, благодаря которым появился Stryker</string>
+    <string name="thanks_title">Спасибо</string>
+    <string name="thanks_subtitle">Stryker существует благодаря чужому времени, тестированию и патчам.</string>
+    <string name="thanks_section">ОСОБАЯ БЛАГОДАРНОСТЬ</string>
+    <string name="thanks_community">…и сообществу Stryker</string>
+    <string name="thanks_close">Закрыть</string>
+    <string name="thanks_line">Особая благодарность: %1$s и сообществу Stryker</string>
+    <string-array name="thanks_people">
+        <item>Nevod</item>
+        <item>Jb314</item>
+        <item>Max</item>
+        <item>Lukas</item>
+        <item>Mirivan</item>
+        <item>The Show Started</item>
+        <item>skilfulwriter (X黑手)</item>
+    </string-array>
+</resources>

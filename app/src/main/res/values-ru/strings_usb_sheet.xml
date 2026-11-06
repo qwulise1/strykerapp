@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="usb_empty_title">Порт пуст</string>
+    <string name="usb_empty_body">Подключите адаптер.</string>
+    <string name="usb_rescan">Повторить поиск</string>
+    <string name="usb_stage_port">Порт</string>
+    <string name="usb_stage_android">Android</string>
+    <string name="usb_stage_vm">ВМ</string>
+    <string name="usb_stage_wlan">wlan</string>
+    <string name="usb_note_nodriver_title">Нет драйвера в Android</string>
+    <string name="usb_note_nodriver_body">В ядре телефона нет модуля для этого чипсета, и добавить его нельзя. Запустите Wi-Fi в гостевой системе Linux.</string>
+    <string name="usb_note_setup_guest">Настроить гостевую систему</string>
+    <string name="usb_note_nonetdev_title">Драйвер привязан, интерфейса нет</string>
+    <string name="usb_note_nonetdev_body">%1$s подключился к адаптеру, но интерфейс не появился — обычно не найдена прошивка (firmware).</string>
+    <string name="usb_note_guestdown_title">Гостевая система не запущена</string>
+    <string name="usb_note_guestdown_body">%1$s должна быть запущена перед передачей адаптера.</string>
+    <string name="usb_note_phoneholds_title">Android использует этот адаптер</string>
+    <string name="usb_note_phoneholds_body">Адаптер занят драйвером %1$s самого телефона. Stryker должен перехватить его у Android перед передачей в %2$s, но некоторые ядра блокируют это.</string>
+    <string name="usb_note_noguestdriver_title">Нет драйвера в гостевой системе</string>
+    <string name="usb_note_noguestdriver_body">В %1$s нет модуля для этого чипсета, поэтому интерфейс не появился.</string>
+    <string name="usb_note_search">Как установить</string>
+    <string name="usb_row_interface">Интерфейс</string>
+    <string name="usb_row_mac">MAC</string>
+    <string name="usb_row_driver">Драйвер</string>
+    <string name="usb_row_bus">Шина</string>
+    <string name="usb_row_matched">Совпадение по</string>
+    <string name="usb_monitor">монитор</string>
+    <string name="usb_match_curated">проверенный</string>
+    <string name="usb_match_legacy">устаревший fallback</string>
+    <string name="usb_match_unknown">нет в базе данных</string>
+    <string name="usb_note_noperm_title">Нет доступа к USB</string>
+    <string name="usb_note_noperm_body">Android не разрешил Stryker открыть адаптер, поэтому его нельзя передать гостевой системе. Запросите доступ снова.</string>
+    <string name="usb_step_scanning">Проверка порта…</string>
+    <string name="usb_step_kernel">Проверка ядра телефона…</string>
+    <string name="usb_step_asking">Запрос доступа у Android…</string>
+    <string name="usb_step_starting_guest">Запуск гостевой системы…</string>
+    <string name="usb_step_handing">Передача адаптера…</string>
+    <string name="usb_step_waiting_driver">Ожидание драйвера…</string>
+    <string name="usb_note_ask_again">Запросить снова</string>
+    <string name="usb_note_retry">Повторить</string>
+    <string name="usb_note_handover_failed_title">В передаче отказано</string>
+    <string name="usb_note_handover_failed_body">%1$s не приняла адаптер. Подробности смотрите в логе.</string>
+    <string name="usb_note_gone_title">Адаптер отключен</string>
+    <string name="usb_note_flow_failed_title">Проверка не удалась</string>
+</resources>
