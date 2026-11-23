@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.zalexdev.stryker.R;
 import com.zalexdev.stryker.custom.Argument;
 import com.zalexdev.stryker.custom.MsfExploit;
+import com.zalexdev.stryker.metasploit.utils.MsfTranslator;
 import com.zalexdev.stryker.utils.Core;
 
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class ValueAdapter extends RecyclerView.Adapter<ValueAdapter.ViewHolder> 
         Argument argument = arguments.get(position);
         h.name.setText(argument.getName());
         h.requiredChip.setVisibility(argument.isRequired() ? View.VISIBLE : View.GONE);
-        h.description.setText(argument.getDescription());
+        h.description.setText(MsfTranslator.translateArgument(context, argument.getName(), argument.getDescription()));
         h.value.setText(argument.getValue());
 
         if (Core.isNumeric(argument.getValue()) && (argument.getName().equals("RPORT")

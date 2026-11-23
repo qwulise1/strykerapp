@@ -131,8 +131,8 @@ public class MetasploitUtils {
                     StringBuilder desc = new StringBuilder();
                     for (int i = 5; i < spl.length; i++) desc.append(spl[i]).append(" ");
                     MsfExploit exploit = new MsfExploit(
-                            spl[1].split("/")[spl[1].split("/").length - 1],
-                            desc.toString().trim(),
+                            MsfTranslator.translateTitle(context, spl[1], spl[1].split("/")[spl[1].split("/").length - 1]),
+                            MsfTranslator.translateDescription(context, spl[1], desc.toString().trim()),
                             spl[2]);
                     exploit.setUrl(spl[1]);
                     exploit.setRank(spl[3]);
@@ -154,15 +154,15 @@ public class MetasploitUtils {
                 String[] spl = s.split(";");
                 if (spl.length == 6) {
                     MsfExploit exploit = new MsfExploit(
-                            spl[1].split("/")[spl[1].split("/").length - 1],
-                            spl[5], spl[2]);
+                            MsfTranslator.translateTitle(context, spl[1], spl[1].split("/")[spl[1].split("/").length - 1]),
+                            MsfTranslator.translateDescription(context, spl[1], spl[5]), spl[2]);
                     exploit.setUrl(spl[1]);
                     exploit.setRank(spl[3]);
                     exploits.add(exploit);
                 } else if (spl.length == 5) {
                     MsfExploit exploit = new MsfExploit(
-                            spl[1].split("/")[spl[1].split("/").length - 1],
-                            spl[4], "None");
+                            MsfTranslator.translateTitle(context, spl[1], spl[1].split("/")[spl[1].split("/").length - 1]),
+                            MsfTranslator.translateDescription(context, spl[1], spl[4]), "None");
                     exploit.setUrl(spl[1]);
                     exploit.setRank(spl[2]);
                     exploits.add(exploit);
@@ -186,30 +186,33 @@ public class MetasploitUtils {
                 if (spl.length == 4) {
                     argument.setName(spl[0].trim());
                     argument.setValue(spl[1].trim());
-                    argument.setDescription(spl[3].trim());
+                    argument.setDescription(MsfTranslator.translateArgument(context, spl[0].trim(), spl[3].trim()));
                 } else if (spl.length == 3) {
                     argument.setName(spl[0].trim());
-                    argument.setDescription(spl[2].trim());
+                    argument.setDescription(MsfTranslator.translateArgument(context, spl[0].trim(), spl[2].trim()));
                 } else if (spl.length == 2) {
                     argument.setName(spl[0].trim());
+                    argument.setDescription(MsfTranslator.translateArgument(context, spl[0].trim(), ""));
                 } else {
                     continue;
                 }
-                argument.setRequired(s.contains(context.getResources().getString(R.string.yes)));
+                String yesLocalized = context.getResources().getString(R.string.yes);
+                argument.setRequired(s.toLowerCase(Locale.ENGLISH).contains("yes") || s.contains(yesLocalized));
                 args.add(argument);
             }
         }
         for (int i = 0; i < out.size(); i++) {
             String s = out.get(i);
             if (s.contains("Name:")) {
-                exploit.setTitle(s.replace("Name:", "").trim());
+                String rawTitle = s.replace("Name:", "").trim();
+                exploit.setTitle(MsfTranslator.translateTitle(context, exploit.getUrl(), rawTitle));
             } else if (s.contains("Description:")) {
                 StringBuilder desc = new StringBuilder();
                 for (int j = i + 1; j < out.size(); j++) {
                     if (out.get(j).length() < 1) break;
                     desc.append(out.get(j)).append(" ");
                 }
-                exploit.setDescription(desc.toString().trim());
+                exploit.setDescription(MsfTranslator.translateDescription(context, exploit.getUrl(), desc.toString().trim()));
             } else if (s.contains("References:")) {
                 for (int j = i + 1; j < out.size(); j++) {
                     if (out.get(j).contains("https://")) {

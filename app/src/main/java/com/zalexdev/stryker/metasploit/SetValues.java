@@ -24,6 +24,7 @@ import com.zalexdev.stryker.custom.MsfExploit;
 import com.zalexdev.stryker.dashboard.Dashboard;
 import com.zalexdev.stryker.metasploit.adapters.ValueAdapter;
 import com.zalexdev.stryker.metasploit.utils.MetasploitUtils;
+import com.zalexdev.stryker.metasploit.utils.MsfTranslator;
 import com.zalexdev.stryker.utils.Core;
 
 import java.util.ArrayList;
@@ -113,10 +114,11 @@ public class SetValues extends Fragment {
                 if (cancelled.get() || activity == null || !isAdded()) {
                     return;
                 }
-                title.setText(msfExploit.getTitle());
+                title.setText(MsfTranslator.translateTitle(context, msfExploit.getUrl(), msfExploit.getTitle()));
                 subtitle.setText(R.string.msf_values_subtitle);
-                if (msfExploit.getDescription() != null && !msfExploit.getDescription().isEmpty()) {
-                    description.setText(msfExploit.getDescription());
+                String descTranslated = MsfTranslator.translateDescription(context, msfExploit.getUrl(), msfExploit.getDescription());
+                if (descTranslated != null && !descTranslated.isEmpty()) {
+                    description.setText(descTranslated);
                     description.setVisibility(View.VISIBLE);
                 }
                 if (msfExploit.getReference() != null && !msfExploit.getReference().isEmpty()) {

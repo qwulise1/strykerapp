@@ -1,0 +1,266 @@
+{
+  "args": {
+    "RHOSTS": "Целевой хост (IP-адрес, диапазон или CIDR-подсеть жертвы)",
+    "RHOST": "Целевой IP-адрес или домен атакуемого хоста",
+    "RPORT": "Целевой сетевой порт уязвимой службы на хосте",
+    "LHOST": "Локальный IP твоего Android (куда жертва вернет шелл)",
+    "LHOSTS": "Локальный IP твоего Android (куда жертва вернет шелл)",
+    "LPORT": "Локальный порт для прослушивания входящего соединения (шелл)",
+    "TARGETURI": "Базовый URI / путь к веб-приложению (напр. /admin или /)",
+    "SSL": "Использовать шифрование SSL/TLS для защищенного соединения",
+    "VHOST": "Виртуальный хост HTTP (заголовок Host для виртуальных серверов)",
+    "THREADS": "Количество параллельных потоков сканирования или атаки",
+    "SMBUser": "Имя пользователя Windows/SMB для аутентификации",
+    "SMBPass": "Пароль пользователя Windows/SMB для аутентификации",
+    "SMBDomain": "Домен Windows или имя рабочей группы (WORKGROUP)",
+    "ForceExploit": "Принудительный запуск (игнорировать результат проверки уязвимости)",
+    "DefangedMode": "Безопасный режим (отключает потенциально деструктивные действия)",
+    "Proxies": "Цепочка прокси-серверов (напр. socks5:127.0.0.1:9050)",
+    "PAYLOAD": "Полезная нагрузка (шелл или команда, исполняемая на цели)",
+    "TIMEOUT": "Таймаут ожидания сетевого ответа в секундах",
+    "VERBOSE": "Подробный вывод процесса выполнения в консоль",
+    "CHOST": "Локальный сетевой адрес интерфейса для исходящих пакетов",
+    "CPORT": "Локальный порт для исходящих пакетов",
+    "SRVHOST": "Локальный IP для запуска вспомогательного HTTP/сервера доставки",
+    "SRVPORT": "Локальный порт для запуска вспомогательного HTTP/сервера",
+    "URIPATH": "Путь URL на локальном сервере для отдачи полезной нагрузки",
+    "HttpUsername": "Имя пользователя для HTTP Basic/Digest авторизации",
+    "HttpPassword": "Пароль для HTTP Basic/Digest авторизации",
+    "STOP_ON_SUCCESS": "Остановить атаку/перебор при первом успешном результате",
+    "USER_FILE": "Путь к файлу со списком логинов для перебора",
+    "PASS_FILE": "Путь к словарю с паролями для перебора",
+    "USERPASS_FILE": "Путь к словарю с парами логин:пароль",
+    "BLANK_PASSWORDS": "Проверять пустой пароль для всех учетных записей",
+    "USER_AS_PASS": "Пробовать имя пользователя в качестве пароля",
+    "SESSION": "Номер активной сессии Meterpreter/Shell для выполнения",
+    "INTERFACE": "Сетевой интерфейс для отправки трафика (напр. wlan0, eth0)",
+    "PORTS": "Список портов или диапазонов для сканирования (напр. 21-25,80,443)",
+    "SMB_PIPE": "Имя именованного канала SMB (Named Pipe, напр. srvsvc, spoolss)",
+    "AutoRunScript": "Скрипт, автоматически выполняемый сразу после открытия сессии",
+    "StageEncoder": "Энкодер для обфускации второй стадии полезной нагрузки",
+    "EnableStageEncoding": "Включить обфускацию/кодирование второй стадии пейлоада",
+    "PrependMigrate": "Автоматически мигрировать в отдельный процесс после запуска",
+    "USERNAME": "Имя пользователя для входа",
+    "PASSWORD": "Пароль для входа",
+    "DOMAIN": "Домен для авторизации",
+    "COMMAND": "Команда операционной системы для выполнения",
+    "CMD": "Команда для выполнения на целевой системе",
+    "PATH": "Путь к файлу или каталогу на целевой системе",
+    "DELAY": "Задержка между отправкой запросов/пакетов в секундах",
+    "JITTER": "Случайный разброс задержки между запросами в процентах",
+    "BATCH_SIZE": "Размер пакета хостов для одновременной обработки",
+    "WORKSPACE": "Имя рабочей области в базе данных Metasploit",
+    "ConnectTimeout": "Таймаут соединения с хостом (в секундах)",
+    "ReadTimeout": "Таймаут чтения ответа от хоста (в секундах)",
+    "SSLVersion": "Версия протокола SSL/TLS (TLS1, TLS1.1, TLS1.2, Auto)",
+    "AutoVerify": "Проверять успешность загрузки полезной нагрузки",
+    "WfsDelay": "Время ожидания подключения полезной нагрузки (сек)",
+    "ExitOnSession": "Завершить прослушивание после первой полученной сессии",
+    "AutoCheck": "Автоматически проверять уязвимость цели перед запуском",
+    "CheckCode": "Результат предварительной проверки хоста",
+    "ListenerComm": "Маршрут или адаптер для прослушивателя сессии",
+    "OverrideLHOST": "Переопределить LHOST для полезной нагрузки",
+    "OverrideLPORT": "Переопределить LPORT для полезной нагрузки",
+    "PayloadUUIDSeed": "Идентификатор семени для сборки уникального UUID пейлоада",
+    "PayloadUUIDTracking": "Включить отслеживание сессий по UUID полезной нагрузки"
+  },
+  "buzzwords": {
+    "remote code execution": "удаленное выполнение произвольного кода (RCE)",
+    "arbitrary code execution": "выполнение произвольного кода",
+    "buffer overflow": "переполнение буфера",
+    "stack buffer overflow": "переполнение буфера в стеке",
+    "heap corruption": "повреждение данных кучи",
+    "denial of service": "отказ в обслуживании (DoS)",
+    "privilege escalation": "повышение привилегий",
+    "local privilege escalation": "локальное повышение привилегий до root/system",
+    "authentication bypass": "обход аутентификации",
+    "directory traversal": "обход каталогов (чтение произвольных файлов)",
+    "path traversal": "обход путей файловой системы",
+    "command injection": "внедрение системных команд (Command Injection)",
+    "sql injection": "внедрение SQL-выражений (SQLi)",
+    "memory corruption": "повреждение системной памяти",
+    "unauthenticated": "без необходимости авторизации",
+    "default credentials": "учетные данные по умолчанию",
+    "hardcoded password": "вшитый в код пароль",
+    "backdoor": "встроенный скрытый бэкдор",
+    "integer overflow": "целочисленное переполнение",
+    "format string": "ошибка форматирования строки",
+    "information disclosure": "утечка конфиденциальной информации",
+    "credential dumping": "дамп учетных данных и хешей",
+    "brute force": "перебор паролей по словарю (брутфорс)",
+    "scanner": "модуль сканирования сети и служб",
+    "login": "модуль авторизации и подбора учетных данных",
+    "version detection": "определение версии сетевой службы",
+    "service detection": "распознавание работающего сервиса"
+  },
+  "modules": {
+    "exploit/windows/smb/ms17_010_eternalblue": {
+      "title": "MS17-010 EternalBlue (RCE в SMBv1)",
+      "desc": "Уязвимость в драйвере Srv.sys протокола SMBv1 в Windows 7, 8.1, Server 2008/2012. Позволяет выполнить произвольный код с наивысшими правами NT AUTHORITY\\SYSTEM без авторизации."
+    },
+    "exploit/windows/smb/ms17_010_psexec": {
+      "title": "MS17-010 EternalBlue + PsExec",
+      "desc": "Эксплуатация EternalBlue с последующей доставкой полезной нагрузки через механизм PsExec. Обеспечивает стабильный запуск шелла."
+    },
+    "exploit/windows/smb/ms08_067_netapi": {
+      "title": "MS08-067 NetAPI Server (RCE)",
+      "desc": "Уязвимость переполнения буфера в службе Server при разборе сетевых путей. Удаленное выполнение кода на Windows XP и Server 2003 без авторизации."
+    },
+    "exploit/windows/rdp/cve_2019_0708_bluekeep_rce": {
+      "title": "CVE-2019-0708 BlueKeep RDP (RCE)",
+      "desc": "Критическая уязвимость Use-After-Free в службе удаленных рабочих столов (RDP / termdd.sys). Удаленное выполнение кода с правами ядра до входа в систему."
+    },
+    "exploit/windows/smb/smb_ghost": {
+      "title": "CVE-2020-0796 SMBGhost (RCE)",
+      "desc": "Целочисленное переполнение в алгоритме сжатия SMBv3.1.1 (Windows 10 версии 1903/1909). Удаленное выполнение кода без авторизации."
+    },
+    "exploit/windows/smb/psexec": {
+      "title": "Microsoft Windows PsExec (Authenticated)",
+      "desc": "Выполнение команд и запуск шелла от имени SYSTEM через службу SMB с использованием известных учетных данных администратора."
+    },
+    "exploit/windows/smb/smb_relay": {
+      "title": "Microsoft Windows SMB Relay",
+      "desc": "Ретрансляция NTLM-аутентификации на целевую систему Windows для несанкционированного запуска полезной нагрузки."
+    },
+    "exploit/unix/ftp/vsftpd_234_backdoor": {
+      "title": "vsftpd 2.3.4 Backdoor",
+      "desc": "Эксплуатация бэкдора в vsftpd 2.3.4. При отправке имени пользователя со смайликом :) сервер открывает командный шелл root на порту 6200."
+    },
+    "exploit/unix/ftp/proftpd_1333c_backdoor": {
+      "title": "ProFTPD 1.3.3c Backdoor",
+      "desc": "Эксплуатация внедренного бэкдора в архиве исходников ProFTPD 1.3.3c. Позволяет выполнить произвольные команды с правами root."
+    },
+    "exploit/linux/samba/is_known_pipename": {
+      "title": "CVE-2017-7494 SambaCry (RCE)",
+      "desc": "Уязвимость загрузки разделяемых библиотек в Samba. Позволяет злоумышленнику с правами записи на общий ресурс выполнить шелл с правами root."
+    },
+    "exploit/multi/http/log4shell_header_injection": {
+      "title": "CVE-2021-44228 Log4Shell (RCE)",
+      "desc": "Критическая JNDI-инъекция в библиотеке Apache Log4j2 через HTTP-заголовки. Удаленное выполнение произвольного кода на уязвимом сервере."
+    },
+    "exploit/multi/http/spring_framework_rce_spring4shell": {
+      "title": "CVE-2022-22965 Spring4Shell (RCE)",
+      "desc": "Удаленное выполнение кода в Java-приложениях на базе Spring Framework через обход фильтрации параметров DataBinder."
+    },
+    "exploit/multi/http/tomcat_mgr_upload": {
+      "title": "Apache Tomcat Manager WAR Upload",
+      "desc": "Загрузка вредоносного Java WAR-архива через веб-интерфейс Tomcat Manager с известными логином и паролем для получения шелла."
+    },
+    "exploit/multi/http/struts2_namespace_ognl": {
+      "title": "Apache Struts 2 OGNL Injection (RCE)",
+      "desc": "Внедрение OGNL-выражений через параметры пространства имен (namespace) в Apache Struts 2 для выполнения системных команд."
+    },
+    "exploit/multi/http/php_cgi_arg_injection": {
+      "title": "CVE-2024-4577 PHP-CGI Argument Injection",
+      "desc": "Внедрение аргументов командной строки в модуль PHP-CGI на платформе Windows, приводящее к удаленному выполнению произвольного кода."
+    },
+    "exploit/multi/misc/redis_eval_exec": {
+      "title": "Redis Lua Sandbox Escape (RCE)",
+      "desc": "Выход из изолированной песочницы Lua в базе данных Redis через уязвимые системные вызовы для запуска команд ОС."
+    },
+    "auxiliary/scanner/portscan/tcp": {
+      "title": "TCP Port Scanner (Сканер портов)",
+      "desc": "Сканирование диапазона TCP-портов целевых хостов с определением открытых служб и времени отклика."
+    },
+    "auxiliary/scanner/portscan/syn": {
+      "title": "SYN Stealth Port Scanner",
+      "desc": "Скрытое сканирование портов путем отправки незавершенных TCP SYN-пакетов без полного установления соединения."
+    },
+    "auxiliary/scanner/smb/smb_version": {
+      "title": "Определение версии Windows и SMB",
+      "desc": "Сбор баннера SMB и NetBIOS, точное определение версии операционной системы Windows и уровня функциональности домена."
+    },
+    "auxiliary/scanner/smb/smb_ms17_010": {
+      "title": "Сканер уязвимости MS17-010 (EternalBlue)",
+      "desc": "Безопасная проверка хостов в сети на подверженность эксплойту EternalBlue без риска вызова синего экрана (BSoD)."
+    },
+    "auxiliary/scanner/rdp/cve_2019_0708_bluekeep": {
+      "title": "Сканер уязвимости BlueKeep (CVE-2019-0708)",
+      "desc": "Проверка удаленных хостов с включенным RDP (порт 3389) на наличие критической уязвимости BlueKeep."
+    },
+    "auxiliary/scanner/http/http_version": {
+      "title": "Определение версии веб-сервера",
+      "desc": "Отправка HTTP-запроса и анализ заголовков Server для определения версий Apache, Nginx, IIS и установленных модулей."
+    },
+    "auxiliary/scanner/http/dir_scanner": {
+      "title": "Сканер директорий и скрытых файлов",
+      "desc": "Поиск скрытых каталогов, панелей администратора и резервных копий на веб-сервере перебором по словарю."
+    },
+    "auxiliary/scanner/http/title": {
+      "title": "Сбор заголовков веб-страниц (Title)",
+      "desc": "Опрос списка веб-серверов в сети и сбор HTML-заголовков (<title>) для быстрой инвентаризации сервисов."
+    },
+    "auxiliary/scanner/ssh/ssh_version": {
+      "title": "Определение версии SSH сервера",
+      "desc": "Подключение к порту 22 и чтение баннера для определения версии OpenSSH, Dropbear или маршрутизатора."
+    },
+    "auxiliary/scanner/ssh/ssh_login": {
+      "title": "Подбор паролей SSH (Брутфорс)",
+      "desc": "Автоматизированный перебор пар логин/пароль к удаленному шеллу SSH по словарям с поддержкой задержки."
+    },
+    "auxiliary/scanner/ftp/ftp_version": {
+      "title": "Определение версии FTP сервера",
+      "desc": "Подключение к порту 21 и определение баннера FTP-сервера."
+    },
+    "auxiliary/scanner/ftp/anonymous": {
+      "title": "Проверка анонимного доступа FTP",
+      "desc": "Проверка возможности подключения к FTP-серверу под пользователем anonymous без ввода пароля."
+    },
+    "auxiliary/scanner/ftp/ftp_login": {
+      "title": "Подбор паролей FTP (Брутфорс)",
+      "desc": "Многопоточный перебор учетных записей FTP-сервера по заданным словарям пользователей и паролей."
+    },
+    "auxiliary/scanner/discovery/arp_sweep": {
+      "title": "ARP Sweep (Обнаружение устройств в LAN)",
+      "desc": "Мгновенное обнаружение всех активных IP и MAC-адресов устройств в локальном сегменте сети через ARP-запросы."
+    },
+    "auxiliary/scanner/discovery/udp_sweep": {
+      "title": "UDP Sweep (Поиск активных хостов)",
+      "desc": "Широковещательный опрос хостов по популярным UDP-службам для выявления активных сетевых устройств."
+    },
+    "auxiliary/scanner/snmp/snmp_login": {
+      "title": "Подбор community-строк SNMP",
+      "desc": "Перебор строк аутентификации SNMP (public, private) на маршрутизаторах, коммутаторах и серверах."
+    },
+    "auxiliary/scanner/mysql/mysql_login": {
+      "title": "Подбор паролей к СУБД MySQL",
+      "desc": "Перебор учетных данных к серверу баз данных MySQL (включая проверку учетной записи root без пароля)."
+    },
+    "auxiliary/scanner/postgres/postgres_login": {
+      "title": "Подбор паролей к PostgreSQL",
+      "desc": "Перебор учетных данных доступа к СУБД PostgreSQL (проверка стандартных postgres/postgres)."
+    },
+    "auxiliary/scanner/mssql/mssql_login": {
+      "title": "Подбор паролей к Microsoft SQL Server",
+      "desc": "Брутфорс учетных записей MS SQL Server (проверка учетной записи системного администратора sa)."
+    },
+    "auxiliary/scanner/vnc/vnc_none_auth": {
+      "title": "Поиск VNC серверов без пароля",
+      "desc": "Поиск удаленных рабочих столов VNC (порт 5900), настроенных без требования пароля для входа."
+    },
+    "auxiliary/scanner/vnc/vnc_login": {
+      "title": "Подбор паролей к VNC серверу",
+      "desc": "Перебор паролей доступа к графическому рабочему столу VNC по словарю."
+    },
+    "payload/android/meterpreter/reverse_tcp": {
+      "title": "Android Meterpreter Reverse TCP",
+      "desc": "Полезная нагрузка обратного шелла Meterpreter для Android. Поддерживает скрытую запись микрофона, доступ к камере, чтение SMS, контактов и файлов."
+    },
+    "payload/android/meterpreter/reverse_https": {
+      "title": "Android Meterpreter Reverse HTTPS",
+      "desc": "Полезная нагрузка Meterpreter с передачей трафика через зашифрованный канал HTTPS для маскировки под обычный веб-трафик."
+    },
+    "payload/windows/meterpreter/reverse_tcp": {
+      "title": "Windows Meterpreter Reverse TCP",
+      "desc": "Интерактивная сессия Meterpreter для Windows через TCP. Предоставляет доступ к командной строке, дампу хешей, кейлоггеру и захвату экрана."
+    },
+    "payload/windows/x64/meterpreter/reverse_tcp": {
+      "title": "Windows x64 Meterpreter Reverse TCP",
+      "desc": "64-битная версия полезной нагрузки Meterpreter для Windows с обходом ограничений 32-битной адресации."
+    },
+    "payload/linux/x64/meterpreter/reverse_tcp": {
+      "title": "Linux x64 Meterpreter Reverse TCP",
+      "desc": "Сессия Meterpreter для 64-битных систем Linux с возможностью выполнения команд и повышением привилегий."
+    }
+  }
+}
