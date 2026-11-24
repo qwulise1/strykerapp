@@ -279,12 +279,12 @@ public class Wifi extends Fragment {
                     wlan = wlan + "mon";
                 }
                 if (wlans.contains(wlan)) {
-                    if (!"wlan0".equals(wlan) && wlan.contains("mon")) {
+                    if (wlan.contains("mon") || core.monitorManager.isMonitorModeEnabled(wlan)) {
                         core.disableMonitorMode(wlan);
                         wlan = wlan.replace("mon", "");
-                        core.customCommand("ip link set " + wlan + " up");
-                    } else if (!"wlan0".equals(wlan)) {
-                        core.customCommand("ip link set " + wlan + " up");
+                        core.customCommand("ip link set " + wlan + " up; svc wifi enable");
+                    } else {
+                        core.customCommand("ip link set " + wlan + " up; svc wifi enable");
                     }
                 }
 

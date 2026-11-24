@@ -82,7 +82,7 @@ public class MonitorManager {
         boolean stillMon = left != null && !forceManaged(left);
         if (isInternalRadio(interfaceName)) {
             String base = baseOf(interfaceName);
-            core.customCommand("ip link set " + base + " up; svc wifi enable");
+            core.customCommand("CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); [ -n \"$CON\" ] && echo 0 > \"$CON\"; ip link set " + base + " up; svc wifi enable");
         }
         if (stillMon) {
             logger.writeLine("Interface " + interfaceName + " is still in monitor mode", 3);

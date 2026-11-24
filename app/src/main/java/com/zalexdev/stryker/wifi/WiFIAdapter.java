@@ -703,6 +703,14 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
             handshake = new AdvancedThread(activity,context) {
                 @Override
                 public void onFinished() {
+                    new Thread(() -> {
+                        String hsIface = core.getHSInterface();
+                        String deauthIface = core.getDeauthInterface();
+                        core.monitorManager.disableMonitorMode(hsIface);
+                        if (!deauthIface.equals(hsIface)) {
+                            core.monitorManager.disableMonitorMode(deauthIface);
+                        }
+                    }).start();
                     if (hsStatus[0]){
                         monitor.finish(true, "Handshake captured\nCheck Stryker/captured/");
                     }
@@ -996,6 +1004,12 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                         sendEvent("Failed to start monitor mode");
                         monitor.failStage(AttackStage.MONITOR, "Interface refused monitor mode",
                                 context.getString(R.string.wifi_monitor_failed, wlanscan));
+                        new Thread(() -> {
+                            core.monitorManager.disableMonitorMode(wlanscan);
+                            if (deauth && !wlanscan.equals(wlandeauth)) {
+                                core.monitorManager.disableMonitorMode(wlandeauth);
+                            }
+                        }).start();
                         setCanceled(true);
                     }
                 }
@@ -1012,7 +1026,14 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                             deauther.kill();
                         }
                     });
-
+                    new Thread(() -> {
+                        String hsIface = core.getHSInterface();
+                        String deauthIface = core.getDeauthInterface();
+                        core.monitorManager.disableMonitorMode(hsIface);
+                        if (!deauthIface.equals(hsIface)) {
+                            core.monitorManager.disableMonitorMode(deauthIface);
+                        }
+                    }).start();
                 }
             };
 
