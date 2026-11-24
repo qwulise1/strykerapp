@@ -803,7 +803,8 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                                         "Internal radio cannot inject — waiting passively");
                             }else{
                             sendEvent("Starting deauth...");}
-                            final String deauthIface = core.monitorManager.isMonitorModeEnabled(wlandeauth + "mon")
+                            final String deauthIface = (core.getInterfacesList().contains(wlandeauth + "mon")
+                                    && core.monitorManager.isMonitorModeEnabled(wlandeauth + "mon"))
                                     ? wlandeauth + "mon" : wlandeauth;
                             final String hsIface = capIface;
                             final boolean internalDeauth = !core.isRootless()

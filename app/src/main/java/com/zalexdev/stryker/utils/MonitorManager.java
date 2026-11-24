@@ -17,11 +17,11 @@ public class MonitorManager {
     public Logger logger;
 
     public UsbDev internalUsbDev = new UsbDev("wlan0","wlan0",
-            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then svc wifi disable; sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
-            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; svc wifi enable; else airmon-ng stop $ifc; fi");
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then (command -v svc >/dev/null 2>&1 && svc wifi disable || true); sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; (command -v svc >/dev/null 2>&1 && svc wifi enable || true); else airmon-ng stop $ifc; fi");
     public UsbDev internalUsbSamsung = new UsbDev("swlan0","swlan0",
-            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then svc wifi disable; sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
-            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; svc wifi enable; else airmon-ng stop $ifc; fi");
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then (command -v svc >/dev/null 2>&1 && svc wifi disable || true); sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; (command -v svc >/dev/null 2>&1 && svc wifi enable || true); else airmon-ng stop $ifc; fi");
 
     public MonitorManager(Core core) {
         this.core = core;
@@ -170,13 +170,23 @@ public class MonitorManager {
 
     public boolean isMonitorModeEnabled(String interfaceName){
         if (interfaceName == null || interfaceName.isEmpty()) return false;
-        for (String[] p : listInterfaces()){
+        ArrayList<String[]> ifcs = listInterfaces();
+        for (String[] p : ifcs){
             if (p[0].equals(interfaceName) && p[1].contains("monitor")) return true;
         }
         if (isInternalRadio(interfaceName)) {
-            ArrayList<String> res = core.customCommand("for f in /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode; do [ -f \"$f\" ] && cat \"$f\" 2>/dev/null && break; done");
-            for (String r : res) {
-                if (r != null && r.trim().equals("4")) return true;
+            boolean exists = false;
+            for (String[] p : ifcs) {
+                if (p[0].equals(interfaceName)) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (exists) {
+                ArrayList<String> res = core.customCommand("for f in /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode; do [ -f \"$f\" ] && cat \"$f\" 2>/dev/null && break; done");
+                for (String r : res) {
+                    if (r != null && r.trim().equals("4")) return true;
+                }
             }
         }
         return false;
