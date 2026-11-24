@@ -706,8 +706,10 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                     new Thread(() -> {
                         String hsIface = core.getHSInterface();
                         String deauthIface = core.getDeauthInterface();
-                        core.monitorManager.disableMonitorMode(hsIface);
-                        if (!deauthIface.equals(hsIface)) {
+                        if (hsIface != null) {
+                            core.monitorManager.disableMonitorMode(hsIface);
+                        }
+                        if (deauthIface != null && !deauthIface.equals(hsIface)) {
                             core.monitorManager.disableMonitorMode(deauthIface);
                         }
                     }).start();
@@ -729,11 +731,11 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
 
                 @Override
                 public void doOnBackground() {
-                    boolean deauth = true;
+                    boolean deauthVar = true;
                     boolean monitorOk;
                     boolean monitor2 = true;
 
-                    String wlanscan = core.getHSInterface();
+                    final String wlanscan = core.getHSInterface();
                     String deauthPref = core.getDeauthInterface();
                     if (!core.isRootless() && !core.isInternalDeauthEnabled()
                             && MonitorManager.isInternalRadio(deauthPref)){
@@ -741,9 +743,10 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                             deauthPref = wlanscan;
                             sendEvent("Deauth interface is the internal radio — using " + wlanscan + " instead (enable 'Deauth with internal adapter' in Settings to use it)");
                         } else {
-                            deauth = false;
+                            deauthVar = false;
                         }
                     }
+                    final boolean deauth = deauthVar;
                     final String wlandeauth = deauthPref;
                     sendEvent("Enabling monitor mode...");
                     monitor.stage(AttackStage.MONITOR, AttackStage.State.ACTIVE, wlanscan);
@@ -1005,8 +1008,10 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                         monitor.failStage(AttackStage.MONITOR, "Interface refused monitor mode",
                                 context.getString(R.string.wifi_monitor_failed, wlanscan));
                         new Thread(() -> {
-                            core.monitorManager.disableMonitorMode(wlanscan);
-                            if (deauth && !wlanscan.equals(wlandeauth)) {
+                            if (wlanscan != null) {
+                                core.monitorManager.disableMonitorMode(wlanscan);
+                            }
+                            if (deauth && wlandeauth != null && !wlandeauth.equals(wlanscan)) {
                                 core.monitorManager.disableMonitorMode(wlandeauth);
                             }
                         }).start();
@@ -1029,8 +1034,10 @@ public class WiFIAdapter extends RecyclerView.Adapter<WiFIAdapter.ViewHolder> {
                     new Thread(() -> {
                         String hsIface = core.getHSInterface();
                         String deauthIface = core.getDeauthInterface();
-                        core.monitorManager.disableMonitorMode(hsIface);
-                        if (!deauthIface.equals(hsIface)) {
+                        if (hsIface != null) {
+                            core.monitorManager.disableMonitorMode(hsIface);
+                        }
+                        if (deauthIface != null && !deauthIface.equals(hsIface)) {
                             core.monitorManager.disableMonitorMode(deauthIface);
                         }
                     }).start();
