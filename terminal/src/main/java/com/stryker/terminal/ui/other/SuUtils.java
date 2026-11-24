@@ -225,10 +225,8 @@ public class SuUtils {
     }
 
     private static String monitorCommand(String ifc){
-        if ("wlan0".equals(ifc))
-            return "ip link set wlan0 down; echo '4' > /sys/module/wlan/parameters/con_mode; ip link set wlan0 up";
-        if ("swlan0".equals(ifc))
-            return "ip link set swlan0 down; echo '4' > /sys/module/wlan/parameters/con_mode; ip link set swlan0 up";
+        if ("wlan0".equals(ifc) || "swlan0".equals(ifc))
+            return "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then svc wifi disable; sleep 1; ip link set " + ifc + " down; echo 4 > \"$CON\"; sleep 1; ip link set " + ifc + " up; else airmon-ng start " + ifc + "; fi";
         return "airmon-ng start " + ifc;
     }
 
@@ -247,10 +245,8 @@ public class SuUtils {
     }
 
     private static String disableCommand(String ifc){
-        if ("wlan0".equals(ifc))
-            return "ip link set wlan0 down; echo '0' > /sys/module/wlan/parameters/con_mode; ip link set wlan0 up";
-        if ("swlan0".equals(ifc))
-            return "ip link set swlan0 down; echo '0' > /sys/module/wlan/parameters/con_mode";
+        if ("wlan0".equals(ifc) || "swlan0".equals(ifc))
+            return "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set " + ifc + " down; echo 0 > \"$CON\"; sleep 1; svc wifi enable; else airmon-ng stop " + ifc + "; fi";
         return "airmon-ng stop " + ifc;
     }
 

@@ -16,8 +16,12 @@ public class MonitorManager {
     public Core core;
     public Logger logger;
 
-    public UsbDev internalUsbDev = new UsbDev("wlan0","wlan0","ip link set $ifc down; echo '4' > /sys/module/wlan/parameters/con_mode; ip link set $ifc up","ip link set $ifc down; echo '0' > /sys/module/wlan/parameters/con_mode; ip link set $ifc up");
-    public UsbDev internalUsbSamsung = new UsbDev("swlan0","swlan0","ip link set $ifc down; echo '4' > /sys/module/wlan/parameters/con_mode; ip link set $ifc up","ip link set $ifc down; echo '0' > /sys/module/wlan/parameters/con_mode");
+    public UsbDev internalUsbDev = new UsbDev("wlan0","wlan0",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then svc wifi disable; sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; svc wifi enable; else airmon-ng stop $ifc; fi");
+    public UsbDev internalUsbSamsung = new UsbDev("swlan0","swlan0",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then svc wifi disable; sleep 1; ip link set $ifc down; echo 4 > \"$CON\"; sleep 1; ip link set $ifc up; else airmon-ng start $ifc; fi",
+            "CON=$(ls /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode 2>/dev/null | head -n 1); if [ -n \"$CON\" ]; then ip link set $ifc down; echo 0 > \"$CON\"; sleep 1; svc wifi enable; else airmon-ng stop $ifc; fi");
 
     public MonitorManager(Core core) {
         this.core = core;
@@ -141,7 +145,7 @@ public class MonitorManager {
         else if (isMonitorModeEnabled(ifc + "mon")) monIfc = ifc + "mon";
         if (monIfc == null) return false;
         if (channel != null && !channel.isEmpty() && !"0".equals(channel)) {
-            core.customChrootCommand("iw dev " + monIfc + " set channel " + channel, true);
+            core.customChrootCommand("iw dev " + monIfc + " set channel " + channel + " 2>/dev/null || iwpriv " + monIfc + " setMonChan " + channel + " 0 2>/dev/null || true", true);
         }
         return true;
     }
@@ -167,7 +171,13 @@ public class MonitorManager {
     public boolean isMonitorModeEnabled(String interfaceName){
         if (interfaceName == null || interfaceName.isEmpty()) return false;
         for (String[] p : listInterfaces()){
-            if (p[0].equals(interfaceName)) return p[1].contains("monitor");
+            if (p[0].equals(interfaceName) && p[1].contains("monitor")) return true;
+        }
+        if (isInternalRadio(interfaceName)) {
+            ArrayList<String> res = core.customCommand("for f in /sys/module/qca_cld3_*/parameters/con_mode /sys/module/wlan/parameters/con_mode; do [ -f \"$f\" ] && cat \"$f\" 2>/dev/null && break; done");
+            for (String r : res) {
+                if (r != null && r.trim().equals("4")) return true;
+            }
         }
         return false;
     }
@@ -303,6 +313,10 @@ public class MonitorManager {
         return false;
     }
     public String getMonitorCommand(String ifc){
+        if (isInternalRadio(ifc)) {
+            if ("swlan0".equals(ifc)) return internalUsbSamsung.getCommandMon().replace("$ch", "");
+            return internalUsbDev.getCommandMon().replace("$ch", "");
+        }
         ArrayList<UsbDev> devices = getDevices();
         String pid = getPid();
         ArrayList<String> pids = getPids();
@@ -321,19 +335,15 @@ public class MonitorManager {
                 }
             }
         }
-        if(ifc.equals("wlan0")){
-            core.logger.writeLine("Found device: "+internalUsbDev.getIfc()+" with command: "+internalUsbDev.getCommandMon(),2);
-            return internalUsbDev.getCommandMon().replace("$ch","");
-        }
-        if(ifc.equals("swlan0")){
-            core.logger.writeLine("Found device: "+internalUsbSamsung.getIfc()+" with command: "+internalUsbSamsung.getCommandMon(),2);
-            return internalUsbSamsung.getCommandMon().replace("$ch","");
-        }
         return "airmon-ng start "+ifc;
     }
 
     public String getMonitorCommand(String ifc, String channel){
         String ch = channel == null ? "" : channel;
+        if (isInternalRadio(ifc)) {
+            if ("swlan0".equals(ifc)) return internalUsbSamsung.getCommandMon().replace("$ch", ch);
+            return internalUsbDev.getCommandMon().replace("$ch", ch);
+        }
         ArrayList<UsbDev> devices = getDevices();
         String pid = getPid();
         ArrayList<String> pids = getPids();
@@ -350,12 +360,6 @@ public class MonitorManager {
                 }
             }
         }
-        if(ifc.equals("wlan0")){
-            return internalUsbDev.getCommandMon().replace("$ch",ch);
-        }
-        if(ifc.equals("swlan0")){
-            return internalUsbSamsung.getCommandMon().replace("$ch",ch);
-        }
         return "airmon-ng start "+ifc + " " + ch;
     }
 
@@ -363,6 +367,10 @@ public class MonitorManager {
     public String getDisableCommand(String ifc){
         if (ifc != null && ifc.endsWith("mon") && isInternalRadio(ifc)) {
             ifc = ifc.substring(0, ifc.length() - 3);
+        }
+        if (isInternalRadio(ifc)) {
+            if ("swlan0".equals(ifc)) return internalUsbSamsung.getCommandDis();
+            return internalUsbDev.getCommandDis();
         }
         ArrayList<UsbDev> devices = getDevices();
         String pid = getPid();

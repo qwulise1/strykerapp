@@ -831,7 +831,7 @@ public class Wifi extends Fragment {
                 core.customChrootCommand("mkdir -p " + guestShare + "/hs " + guestShare + "/captured; "
                         + "rm -f " + guestShare + "/hs/handshakenow*");
                 String cmd = "airodump-ng " + capIface + " -w " + guestShare
-                        + "/hs/handshakenow --ignore-negative-one --output-format pcap,csv  --update 3";
+                        + "/hs/handshakenow --ignore-negative-one --output-format pcap,csv --band abg --update 3";
                 airodump = new AdvancedProcess(activity, context, cmd, true) {
                     @Override
                     public void onFinished(ArrayList<String> outputList) {

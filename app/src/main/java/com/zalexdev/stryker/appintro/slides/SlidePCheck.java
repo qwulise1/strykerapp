@@ -192,7 +192,8 @@ public class SlidePCheck extends Fragment implements IntroPage {
             if (cancelled.get()) return;
             boolean usbOk = context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_USB_HOST);
 
-            boolean monAvail = core.checkFile("/sys/module/wlan/parameters/con_mode");
+            boolean monAvail = core.checkFile("/sys/module/wlan/parameters/con_mode")
+                    || core.customCommand("ls /sys/module/qca_cld3_*/parameters/con_mode 2>/dev/null").size() > 0;
             if (monAvail) {
                 monAvail = Core.contains(core.customCommand(
                                 "cat /proc/cpuinfo | grep \"Hardware\" | sed \"s/^Hardware.*: \\(.*\\)/\\1/g\""),
